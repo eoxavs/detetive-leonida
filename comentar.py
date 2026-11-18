@@ -42,13 +42,14 @@ def http(url, dados=None, token=None, json_body=None):
 def main():
     pend = ler(PEND)
     agora = datetime.now(timezone.utc)
-    vencidos = [p for p in pend if datetime.fromisoformat(p["publishAt"].replace("Z", "+00:00")) <= agora]
-    if not vencidos:
-        print(f"nada a fazer ({len(pend)} aguardando)")
-        return
+    # renova o acesso em toda execução: se o login quebrar, o job falha e o GitHub avisa por e-mail
     tok = http("https://oauth2.googleapis.com/token", {
         "client_id": os.environ["YT_CLIENT_ID"], "client_secret": os.environ["YT_CLIENT_SECRET"],
         "refresh_token": os.environ["YT_REFRESH_TOKEN"], "grant_type": "refresh_token"})["access_token"]
+    vencidos = [p for p in pend if datetime.fromisoformat(p["publishAt"].replace("Z", "+00:00")) <= agora]
+    if not vencidos:
+        print(f"login ok; nada a fazer ({len(pend)} aguardando)")
+        return
     feitos = ler(FEITOS)
     falhou = False
     for p in vencidos:
