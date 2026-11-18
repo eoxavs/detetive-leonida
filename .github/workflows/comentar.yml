@@ -1,0 +1,27 @@
+name: comentar
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: comentar
+jobs:
+  comentar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Postar comentarios pendentes
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python comentar.py
+      - name: Salvar estado
+        if: always()
+        run: |
+          git config user.name "robo-comentarios"
+          git config user.email "robo-comentarios@users.noreply.github.com"
+          git add pendentes.json feitos.json
+          git diff --cached --quiet || (git commit -m "comentarios postados" && git push)
